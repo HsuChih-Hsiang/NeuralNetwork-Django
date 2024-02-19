@@ -18,15 +18,18 @@ class Login(APIView):
         """
         check = LoginSerializer(data=request.data)
         if not check.is_valid():
-            return response()
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
         account = check.validated_data.get('account')
         password = check.validated_data.get('password')
         user = Member.objects.filter(account=account).first()
-        check = check_password(password, user.password)
+        check = check_password(password, user.password) if user else False
+
         if check:
             secret = os.getenv("JWT_SECRET")
-            jwt.encode({"user_id": user.member_id, "account": account}, secret, algorithm="HS256")
-            return response()
+            jwt_token = jwt.encode({"user_id": user.member_id, "account": account}, secret, algorithm="HS256")
+            return response(data={"jwt_token": jwt_token})
+        else:
+            raise Error(ErrorMsg.UNAUTHORIZED, 'Login Fail')
 
 
 class Register(APIView):
