@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Member
+from .models import Member, MemberPermission
 
 
 class LoginSerializer(serializers.Serializer):
@@ -13,4 +13,10 @@ class RegisterSerializer(serializers.Serializer):
     name = serializers.CharField(required=True, allow_null=False, allow_blank=False)
 
     def create(self, validated_data):
-        Member.objects.create(**validated_data)
+        user = Member.objects.create(**validated_data)
+        member_num = Member.objects.count()
+        if user and member_num <= 1:
+            MemberPermission.objects.create(member_id=user.id, admin=True)
+        elif user:
+            MemberPermission.objects.create(member_id=user.id)
+

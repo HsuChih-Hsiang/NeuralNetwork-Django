@@ -14,8 +14,8 @@ class Member(BaseModel):
 
 class MemberPermission(BaseModel):
     member_id = models.OneToOneField(Member, on_delete=models.CASCADE)
-    read_only = models.BooleanField()
-    admin = models.BooleanField()
+    read_only = models.BooleanField(default=True)
+    admin = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'Member_Permission'
