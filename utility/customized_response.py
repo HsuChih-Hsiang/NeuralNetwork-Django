@@ -16,7 +16,7 @@ def response(error_code: ErrorMsg = ErrorMsg.OK, data: dict | list = None):
     return Response(res_data, status=error_code.value)
 
 
-def custom_exception_handler(exc: Exception):
+def custom_exception_handler(exc: Exception, context):
     if isinstance(exc, Error):
         err_msg = exc.getMessage()
         err_code = exc.error.value

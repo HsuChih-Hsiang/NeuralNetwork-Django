@@ -125,6 +125,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# for define self response
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'utility.customized_response.custom_exception_handler'
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

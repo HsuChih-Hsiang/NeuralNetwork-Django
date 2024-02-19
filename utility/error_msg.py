@@ -32,7 +32,6 @@ class Error(APIException):
         if not self.addition_msg:
             return ERROR_CODE_LIST[self.error.value]
         else:
-            import copy
             e = copy.deepcopy(ERROR_CODE_LIST[self.error.value])
             e += ", %s" % self.addition_msg
             return e

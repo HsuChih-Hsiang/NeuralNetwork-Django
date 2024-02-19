@@ -1,8 +1,8 @@
 from django.db import models
-from utility.models import BaseModel
 
 
-class Member(BaseModel):
+class Member(models.Model):
+    objects = models.Manager()
     member_id = models.AutoField(primary_key=True)
     account = models.CharField(max_length=20, unique=True)
     password = models.CharField()
@@ -12,7 +12,8 @@ class Member(BaseModel):
         db_table = 'Member'
 
 
-class MemberPermission(BaseModel):
+class MemberPermission(models.Model):
+    objects = models.Manager()
     member_id = models.OneToOneField(Member, on_delete=models.CASCADE)
     read_only = models.BooleanField(default=True)
     admin = models.BooleanField(default=False)
