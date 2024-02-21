@@ -49,9 +49,9 @@ class Register(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'user_exist')
 
         register_check.validated_data.update({'password': make_password(password)})
-        register_check.save()
+        register_result = register_check.save()
         secret = os.getenv("JWT_SECRET")
-        token = jwt.encode({"user_id": user.member_id, "account": account}, secret, algorithm="HS256")
+        token = jwt.encode({"user_id": register_result.member_id, "account": account}, secret, algorithm="HS256")
         data = {
             'token': token
         }

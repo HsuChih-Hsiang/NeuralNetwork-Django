@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Member, MemberPermission
+from utility.error_msg import ErrorMsg, Error
 
 
 class LoginSerializer(serializers.Serializer):
@@ -15,8 +16,13 @@ class RegisterSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = Member.objects.create(**validated_data)
         member_num = Member.objects.count()
+
         if user and member_num <= 1:
-            MemberPermission.objects.create(member_id=user.id, admin=True)
+            MemberPermission.objects.create(member_id=user, admin=True)
         elif user:
-            MemberPermission.objects.create(member_id=user.id)
+            MemberPermission.objects.create(member_id=user)
+        else:
+            raise Error(ErrorMsg.BAD_REQUEST, 'user_exist')
+
+        return user
 
