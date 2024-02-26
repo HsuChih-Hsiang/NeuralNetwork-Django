@@ -3,7 +3,7 @@ from utility.error_msg import ErrorMsg, Error
 from utility.customized_auth import Authentication
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from .serializer import LoginSerializer, RegisterSerializer, PermissionSerializer
+from .serializer import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
 from django.contrib.auth.hashers import check_password, make_password
 from .models import Member, MemberPermission
 import jwt
@@ -61,17 +61,35 @@ class Register(APIView):
 
 class Permission(APIView):
     parser_classes = (JSONParser,)
-    # permission_classes = [Authentication]
+    permission_classes = [Authentication]
 
     def post(self, request):
         """
         PermissionSetting
         """
-        register_check = PermissionSerializer(data=request.data)
-        if not register_check.is_valid():
+        permission = UpdatePermissionSerializer(data=request.data)
+        if not permission.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST)
 
-        # register_check.save()
+        permission_data = permission.validated_data.get('permission_data')
+
+        for data in permission_data:
+            user_id = data.pop('user_id')
+            read_only = data.get('read_only')
+            admin = data.get('admin')
+
+            member = MemberPermission.objects.filter(user=user_id)
+            if not member:
+                raise Error(ErrorMsg.BAD_REQUEST)
+            if admin:
+                member.update(read_only=True, admin=True)
+            else:
+                admin_num = MemberPermission.objects.filter(admin=True).count()
+                member_admin = member.first().admin
+                if admin_num >= 1 and member_admin:
+                    raise Error(ErrorMsg.BAD_REQUEST)
+                else:
+                    member.update(read_only=read_only, admin=admin)
 
         return response()
 
