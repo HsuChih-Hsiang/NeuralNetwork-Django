@@ -28,11 +28,18 @@ class RegisterSerializer(serializers.Serializer):
 
 
 class PermissionSerializer(serializers.Serializer):
-    member_id = serializers.IntegerField(required=True, allow_null=False, source='user.member_id')
-    account = serializers.CharField(read_only=True, source='user.account')
-    name = serializers.CharField(read_only=True, source='user.name')
-    admin = serializers.BooleanField(required=False, allow_null=False)
-    read_only = serializers.BooleanField(required=False, allow_null=False)
+    user_id = serializers.IntegerField(source='user.member_id')
+    account = serializers.CharField(source='user.account')
+    name = serializers.CharField(source='user.name')
+    admin = serializers.BooleanField()
+    read_only = serializers.BooleanField()
 
 
+class PermissionDictField(serializers.DictField):
+    user_id = serializers.IntegerField(required=True, allow_null=False)
+    admin = serializers.BooleanField(required=True, allow_null=False)
+    read_only = serializers.BooleanField(required=True, allow_null=False)
 
+
+class UpdatePermissionSerializer(serializers.Serializer):
+    permission_data = serializers.ListField(child=PermissionDictField())
