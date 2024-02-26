@@ -1,10 +1,11 @@
 from utility.customized_response import response
 from utility.error_msg import ErrorMsg, Error
+from utility.customized_auth import Authentication
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from .serializer import LoginSerializer, RegisterSerializer
+from .serializer import LoginSerializer, RegisterSerializer, PermissionSerializer
 from django.contrib.auth.hashers import check_password, make_password
-from .models import Member
+from .models import Member, MemberPermission
 import jwt
 import os
 
@@ -41,7 +42,7 @@ class Register(APIView):
         """
         register_check = RegisterSerializer(data=request.data)
         if not register_check.is_valid():
-            return response()
+            raise Error(ErrorMsg.BAD_REQUEST, 'user_exist')
         account = register_check.validated_data.get('account')
         password = register_check.validated_data.get('password')
         user = Member.objects.filter(account=account).first()
@@ -55,4 +56,30 @@ class Register(APIView):
         data = {
             'token': token
         }
+        return response(data=data)
+
+
+class Permission(APIView):
+    parser_classes = (JSONParser,)
+    # permission_classes = [Authentication]
+
+    def post(self, request):
+        """
+        PermissionSetting
+        """
+        register_check = PermissionSerializer(data=request.data)
+        if not register_check.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST)
+
+        # register_check.save()
+
+        return response()
+
+    def get(self, request):
+        member = MemberPermission.objects.select_related('user').all()
+        if not member:
+            raise Error(ErrorMsg.NOT_FOUND)
+
+        data = PermissionSerializer(member, many=True).data
+
         return response(data=data)
