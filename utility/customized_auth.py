@@ -34,16 +34,16 @@ def parse_jwt(request, secret):
 
 class Authentication(BaseAuthentication):
     def authenticate(self, request):
-        parsed_jwt = parse_jwt(request, settings.SECRET_KEY)
+        parsed_jwt = parse_jwt(request, settings.JWT_SECRET)
         user_id = parsed_jwt.get('user_id')
         key = f'nn-{user_id}'
         user = cache.get(key)
         if not user:
-            member = Member.objects.filter(member_id=user_id).first()
+            user = Member.objects.filter(member_id=user_id).first()
             cache.set(key, user, timeout=6000)
-            if not member:
+            if not user:
                 raise Error(ErrorMsg.NOT_FOUND)
-        return user, parsed_jwt.get('role')
+        return user, None
 
 
 class AdminPermission(Authentication):
@@ -65,5 +65,5 @@ class ReadOnlyPermission(Authentication):
         member = MemberPermission.objects.filter(
             Q(user=request.user.id) & (Q(read_only=True) | Q(admin=True))
         ).first()
-        return True if not member else False
+        return True if member else False
 

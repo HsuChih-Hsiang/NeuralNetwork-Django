@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from .serializer import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
 from django.contrib.auth.hashers import check_password, make_password
+from django.conf import settings
 from .models import Member, MemberPermission
 import jwt
 import os
@@ -26,7 +27,7 @@ class Login(APIView):
         check = check_password(password, user.password) if user else False
 
         if check:
-            secret = os.getenv("JWT_SECRET")
+            secret = settings.JWT_SECRET
             jwt_token = jwt.encode({"user_id": user.member_id, "account": account}, secret, algorithm="HS256")
             return response(data={"jwt_token": jwt_token})
         else:
