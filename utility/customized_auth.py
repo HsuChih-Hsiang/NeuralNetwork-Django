@@ -46,15 +46,21 @@ class Authentication(BaseAuthentication):
         return user, parsed_jwt.get('role')
 
 
-class AdminPermission(BasePermission):
+class AdminPermission(Authentication):
+    def has_permission(self, request, view):
+        return True
+
     def has_object_permission(self, request, view, obj):
         member = MemberPermission.objects.filter(
             user=request.user.id, admin=True
         ).first()
-        return True if not member else False
+        return True if member else False
 
 
-class ReadOnlyPermission(BasePermission):
+class ReadOnlyPermission(Authentication):
+    def has_permission(self, request, view):
+        return True
+
     def has_object_permission(self, request, view, obj):
         member = MemberPermission.objects.filter(
             Q(user=request.user.id) & (Q(read_only=True) | Q(admin=True))
