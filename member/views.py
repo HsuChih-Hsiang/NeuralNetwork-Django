@@ -1,6 +1,6 @@
 from utility.customized_response import response
 from utility.error_msg import ErrorMsg, Error
-from utility.customized_auth import Authentication
+from utility.customized_auth import AdminPermission, Authentication
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from .serializer import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
@@ -61,7 +61,8 @@ class Register(APIView):
 
 class Permission(APIView):
     parser_classes = (JSONParser,)
-    permission_classes = [Authentication]
+    authentication_classes = (Authentication, )
+    permission_classes = (AdminPermission,)
 
     def post(self, request):
         """
@@ -80,18 +81,20 @@ class Permission(APIView):
 
             member = MemberPermission.objects.filter(user=user_id)
             if not member:
-                raise Error(ErrorMsg.BAD_REQUEST)
+                raise Error(ErrorMsg.BAD_REQUEST, 'member not exist')
             if admin:
                 member.update(read_only=True, admin=True)
             else:
                 admin_num = MemberPermission.objects.filter(admin=True).count()
                 member_admin = member.first().admin
                 if admin_num >= 1 and member_admin:
-                    raise Error(ErrorMsg.BAD_REQUEST)
+                    raise Error(ErrorMsg.BAD_REQUEST, 'will not exist admin')
                 else:
                     member.update(read_only=read_only, admin=admin)
 
-        return response()
+        member_data = MemberPermission.objects.select_related('user').all()
+        data = PermissionSerializer(member_data, many=True).data
+        return response(data=data)
 
     def get(self, request):
         member = MemberPermission.objects.select_related('user').all()
