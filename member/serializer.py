@@ -18,11 +18,21 @@ class RegisterSerializer(serializers.Serializer):
         member_num = Member.objects.count()
 
         if user and member_num <= 1:
-            MemberPermission.objects.create(member_id=user, admin=True)
+            MemberPermission.objects.create(user=user, admin=True)
         elif user:
-            MemberPermission.objects.create(member_id=user)
+            MemberPermission.objects.create(user=user)
         else:
             raise Error(ErrorMsg.BAD_REQUEST, 'user_exist')
 
         return user
+
+
+class PermissionSerializer(serializers.Serializer):
+    member_id = serializers.IntegerField(required=True, allow_null=False, source='user.member_id')
+    account = serializers.CharField(read_only=True, source='user.account')
+    name = serializers.CharField(read_only=True, source='user.name')
+    admin = serializers.BooleanField(required=False, allow_null=False)
+    read_only = serializers.BooleanField(required=False, allow_null=False)
+
+
 

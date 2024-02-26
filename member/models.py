@@ -14,7 +14,7 @@ class Member(models.Model):
 
 class MemberPermission(models.Model):
     objects = models.Manager()
-    member_id = models.OneToOneField(Member, on_delete=models.CASCADE)
+    user = models.ForeignKey(Member, on_delete=models.CASCADE)
     read_only = models.BooleanField(default=True)
     admin = models.BooleanField(default=False)
 

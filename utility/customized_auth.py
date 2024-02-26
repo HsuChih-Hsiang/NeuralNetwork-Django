@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
-from member.models import Member
+from member.models import Member, MemberPermission
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.permissions import BasePermission
 from utility.error_msg import Error, ErrorMsg
@@ -48,16 +48,16 @@ class Authentication(BaseAuthentication):
 
 class AdminPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
-        member = Member.objects.select_related('member_id').filter(
-            member_id=request.user.id, member_id__admin=True
+        member = MemberPermission.objects.filter(
+            user=request.user.id, admin=True
         ).first()
         return True if not member else False
 
 
 class ReadOnlyPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
-        member = Member.objects.select_related('member_id').filter(
-            Q(member_id=request.user.id) & (Q(member_id__read_only=True) | Q(member_id__admin=True))
+        member = MemberPermission.objects.filter(
+            Q(user=request.user.id) & (Q(read_only=True) | Q(admin=True))
         ).first()
         return True if not member else False
 
