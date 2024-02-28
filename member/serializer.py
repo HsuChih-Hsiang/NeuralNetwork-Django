@@ -37,6 +37,7 @@ class PermissionSerializer(serializers.Serializer):
 
 class PermissionDictField(serializers.DictField):
     user_id = serializers.IntegerField(required=True, allow_null=False)
+    name = serializers.CharField(required=True, allow_null=False, allow_blank=False)
     admin = serializers.BooleanField(required=True, allow_null=False)
     read_only = serializers.BooleanField(required=True, allow_null=False)
 
