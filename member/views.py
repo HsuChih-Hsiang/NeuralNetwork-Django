@@ -79,19 +79,20 @@ class Permission(APIView):
             user_id = data.pop('user_id')
             read_only = data.get('read_only')
             admin = data.get('admin')
+            name = data.get('name')
 
             member = MemberPermission.objects.filter(user=user_id)
             if not member:
                 raise Error(ErrorMsg.BAD_REQUEST, 'member not exist')
             if admin:
-                member.update(read_only=True, admin=True)
+                member.update(name=name, read_only=True, admin=True)
             else:
                 admin_num = MemberPermission.objects.filter(admin=True).count()
                 member_admin = member.first().admin
                 if admin_num >= 1 and member_admin:
                     raise Error(ErrorMsg.BAD_REQUEST, 'will not exist admin')
                 else:
-                    member.update(read_only=read_only, admin=admin)
+                    member.update(name=name, read_only=read_only, admin=admin)
 
         member_data = MemberPermission.objects.select_related('user').all()
         data = PermissionSerializer(member_data, many=True).data
