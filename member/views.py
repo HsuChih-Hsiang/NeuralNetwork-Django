@@ -68,7 +68,11 @@ class Register(APIView):
         password = register_check.validated_data.get('password')
         email = register_check.validated_data.get('email')
 
-        user = Member.objects.filter(Q(account=account) | Q(email=email)).first()
+        if email:
+            user = Member.objects.filter(Q(account=account) | Q(email=email)).first()
+        else:
+            user = Member.objects.filter(account=account).first()
+
         if user:
             raise Error(ErrorMsg.BAD_REQUEST, 'user_exist')
 
