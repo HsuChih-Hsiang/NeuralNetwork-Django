@@ -3,7 +3,7 @@ from utility.error_msg import ErrorMsg, Error
 from utility.customized_auth import AdminPermission, Authentication
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from .serializer import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
+from .serializers import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
 from django.contrib.auth.hashers import check_password, make_password
 from django.db.models import Q
 from django.conf import settings
