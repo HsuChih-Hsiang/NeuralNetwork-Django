@@ -5,7 +5,6 @@ from django.core.cache import cache
 from django.db.models import Q
 from member.models import Member, MemberPermission
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.permissions import BasePermission
 from utility.error_msg import Error, ErrorMsg
 
 logger = logging.getLogger(__name__)

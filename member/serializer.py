@@ -9,9 +9,10 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.Serializer):
-    account = serializers.CharField(required=True, allow_null=False, allow_blank=False)
-    password = serializers.CharField(required=True, allow_null=False, allow_blank=False)
+    account = serializers.CharField(required=True, allow_null=False, allow_blank=False, min_length=8)
+    password = serializers.RegexField(required=True, regex=r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$')
     name = serializers.CharField(required=True, allow_null=False, allow_blank=False)
+    email = serializers.EmailField(required=True, allow_null=False, allow_blank=False)
 
     def create(self, validated_data):
         user = Member.objects.create(**validated_data)
@@ -31,8 +32,13 @@ class PermissionSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(source='user.member_id')
     account = serializers.CharField(source='user.account')
     name = serializers.CharField(source='user.name')
+    email = serializers.SerializerMethodField()
     admin = serializers.BooleanField()
     read_only = serializers.BooleanField()
+
+    def get_email(self, obj):
+        email = obj.user.email
+        return email if email else str()
 
 
 class PermissionDictField(serializers.DictField):

@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from .serializer import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
 from django.contrib.auth.hashers import check_password, make_password
+from django.db.models import Q
 from django.conf import settings
 from .models import Member, MemberPermission
 import jwt
@@ -44,9 +45,12 @@ class Register(APIView):
         register_check = RegisterSerializer(data=request.data)
         if not register_check.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST, 'user_exist')
+
         account = register_check.validated_data.get('account')
         password = register_check.validated_data.get('password')
-        user = Member.objects.filter(account=account).first()
+        email = register_check.validated_data.get('email')
+
+        user = Member.objects.filter(Q(account=account) | Q(email=email)).first()
         if user:
             raise Error(ErrorMsg.BAD_REQUEST, 'user_exist')
 
@@ -80,11 +84,12 @@ class Permission(APIView):
             read_only = data.get('read_only')
             admin = data.get('admin')
             name = data.get('name')
+            email = data.get('email')
 
             member_permission = MemberPermission.objects.filter(user=user_id)
             member = Member.objects.filter(member_id=user_id)
             if member:
-                member.update(name=name)
+                member.update(name=name, email=email)
             if not member_permission:
                 raise Error(ErrorMsg.BAD_REQUEST, 'member not exist')
             if admin:
@@ -102,7 +107,7 @@ class Permission(APIView):
         return response(data=data)
 
     def get(self, request):
-        member = MemberPermission.objects.select_related('user').all()
+        member = MemberPermission.objects.select_related('user').order_by('user').all()
         if not member:
             raise Error(ErrorMsg.NOT_FOUND)
 
