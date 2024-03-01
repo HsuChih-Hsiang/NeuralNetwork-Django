@@ -44,11 +44,13 @@ class Login(APIView):
         else:
             raise Error(ErrorMsg.UNAUTHORIZED, 'Login Fail')
 
-    def get(self, user_id):
-        member = Member.objects.filter(member_id=user_id).first()
+    def get(self, request):
+        user_id = request.user.member_id
+        member = MemberPermission.objects.filter(id=user_id).first()
         if not member:
             raise Error(ErrorMsg.UNAUTHORIZED)
-        return True
+        data = PermissionSerializer(member).data
+        return response(data=data)
 
 
 class Register(APIView):
