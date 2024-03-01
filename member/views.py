@@ -15,6 +15,16 @@ import os
 class Login(APIView):
     parser_classes = (JSONParser,)
 
+    def get_authenticators(self):
+        if self.request.method == 'GET':
+            return (Authentication(),)
+        return ()
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (AdminPermission(),)
+        return ()
+
     def post(self, request):
         """
         Login
@@ -33,6 +43,14 @@ class Login(APIView):
             return response(data={"jwt_token": jwt_token})
         else:
             raise Error(ErrorMsg.UNAUTHORIZED, 'Login Fail')
+
+    def get(self, request):
+        user_id = request.user.member_id
+        member = MemberPermission.objects.filter(id=user_id).first()
+        if not member:
+            raise Error(ErrorMsg.UNAUTHORIZED)
+        data = PermissionSerializer(member).data
+        return response(data=data)
 
 
 class Register(APIView):
@@ -66,7 +84,7 @@ class Register(APIView):
 
 class Permission(APIView):
     parser_classes = (JSONParser,)
-    authentication_classes = (Authentication, )
+    authentication_classes = (Authentication,)
     permission_classes = (AdminPermission,)
 
     def post(self, request):
