@@ -1,3 +1,40 @@
 from django.db import models
 
-# Create your models here.
+
+class Topic(models.Model):
+    objects = models.Manager()
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True)
+
+    class Meta:
+        db_table = 'Topic'
+
+
+class Subtopic(models.Model):
+    objects = models.Manager()
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True)
+    topic = models.OneToOneField(Topic, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        db_table = 'Subtopic'
+
+
+class ModelClass(models.Model):
+    objects = models.Manager()
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True)
+    sub_topic = models.OneToOneField(Subtopic, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        db_table = 'Model_Class'
+
+
+class ModelDetails(models.Model):
+    objects = models.Manager()
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True)
+    model_class = models.OneToOneField(ModelClass, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        db_table = 'Model_Details'
