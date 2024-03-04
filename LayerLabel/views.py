@@ -11,12 +11,12 @@ class TopicLayer(APIView):
     parser_classes = (JSONParser,)
 
     def get_authenticators(self):
-        if self.request.method in ['POST', 'PUT']:
+        if self.request.method == 'POST':
             return (Authentication(),)
         return ()
 
     def get_permissions(self):
-        if self.request.method in ['POST', 'PUT']:
+        if self.request.method == 'POST':
             return (AdminPermission(),)
         return ()
 
@@ -30,9 +30,6 @@ class TopicLayer(APIView):
         data = TopicCreateSerializer(topic, many=True).data
         return response(data=data)
 
-    def put(self, request):
-        pass
-
     def get(self, request):
         search = SearchTextSerializer(data=request.query_params)
         if not search.is_valid():
@@ -44,6 +41,36 @@ class TopicLayer(APIView):
         else:
             topic = Topic.objects.filer(is_show=True)
 
+        data = TopicCreateSerializer(topic, many=True).data
+        return response(data=data)
+
+
+class UpdateTopicLayer(APIView):
+    parser_classes = (JSONParser,)
+
+    def get_authenticators(self):
+        if self.request.method == 'PUT':
+            return (Authentication(),)
+        return ()
+
+    def get_permissions(self):
+        if self.request.method == 'PUT':
+            return (AdminPermission(),)
+        return ()
+
+    def put(self, request, topic_id):
+        check = TopicCreateSerializer(data=request.data)
+        if not check.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        topic = Topic.objects.filter(id=topic_id)
+        if not topic:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- topic id')
+
+        check.instance = topic
+        check.save()
+
+        topic = Topic.objects.filer(is_show=True)
         data = TopicCreateSerializer(topic, many=True).data
         return response(data=data)
 
