@@ -6,6 +6,7 @@ from rest_framework.parsers import JSONParser
 from .serializers import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
 from django.contrib.auth.hashers import check_password, make_password
 from django.db.models import Q
+from django.db import transaction
 from django.conf import settings
 from .models import Member, MemberPermission
 import jwt
@@ -100,30 +101,33 @@ class Permission(APIView):
             raise Error(ErrorMsg.BAD_REQUEST)
 
         permission_data = permission.validated_data.get('permission_data')
+        with transaction.atomic():
+            try:
+                for data in permission_data:
+                    user_id = data.pop('user_id')
+                    read_only = data.get('read_only')
+                    admin = data.get('admin')
+                    name = data.get('name')
+                    email = data.get('email')
 
-        for data in permission_data:
-            user_id = data.pop('user_id')
-            read_only = data.get('read_only')
-            admin = data.get('admin')
-            name = data.get('name')
-            email = data.get('email')
+                    member_permission = MemberPermission.objects.filter(user=user_id)
+                    member = Member.objects.filter(member_id=user_id)
 
-            member_permission = MemberPermission.objects.filter(user=user_id)
-            member = Member.objects.filter(member_id=user_id)
-            if member:
-                member.update(name=name, email=email)
-            if not member_permission:
-                raise Error(ErrorMsg.BAD_REQUEST, 'member not exist')
-            if admin:
-                member_permission.update(read_only=True, admin=True)
-            else:
-                admin_num = MemberPermission.objects.filter(admin=True).count()
-                member_admin = member_permission.first().admin
-                if admin_num <= 1 and member_admin:
-                    raise Error(ErrorMsg.BAD_REQUEST, 'will not exist admin')
-                else:
-                    member_permission.update(read_only=read_only, admin=admin)
-
+                    if member:
+                        member.update(name=name, email=email)
+                    if not member_permission:
+                        raise Error(ErrorMsg.BAD_REQUEST, 'member not exist')
+                    if admin:
+                        member_permission.update(read_only=True, admin=True)
+                    else:
+                        admin_num = MemberPermission.objects.filter(admin=True).count()
+                        member_admin = member_permission.first().admin
+                        if admin_num <= 1 and member_admin:
+                            raise Error(ErrorMsg.BAD_REQUEST, 'will not exist admin')
+                        else:
+                            member_permission.update(read_only=read_only, admin=admin)
+            except Exception as e:
+                raise Error(ErrorMsg.BAD_REQUEST, str(e))
         member_data = MemberPermission.objects.select_related('user').order_by('user').all()
         data = PermissionSerializer(member_data, many=True).data
         return response(data=data)
