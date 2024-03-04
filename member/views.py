@@ -4,11 +4,11 @@ from utility.customized_auth import AdminPermission, Authentication
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from .serializers import LoginSerializer, RegisterSerializer, PermissionSerializer, UpdatePermissionSerializer
+from .models import Member, MemberPermission
 from django.contrib.auth.hashers import check_password, make_password
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
-from .models import Member, MemberPermission
 import jwt
 import os
 
@@ -42,14 +42,17 @@ class Login(APIView):
             secret = settings.JWT_SECRET
             jwt_token = jwt.encode({"user_id": user.member_id, "account": account}, secret, algorithm="HS256")
             return response(data={"jwt_token": jwt_token})
+
         else:
             raise Error(ErrorMsg.UNAUTHORIZED, 'Login Fail')
 
     def get(self, request):
         user_id = request.user.member_id
         member = MemberPermission.objects.filter(id=user_id).first()
+
         if not member:
             raise Error(ErrorMsg.UNAUTHORIZED)
+
         data = PermissionSerializer(member).data
         return response(data=data)
 
@@ -101,6 +104,7 @@ class Permission(APIView):
             raise Error(ErrorMsg.BAD_REQUEST)
 
         permission_data = permission.validated_data.get('permission_data')
+
         with transaction.atomic():
             try:
                 for data in permission_data:
@@ -126,8 +130,10 @@ class Permission(APIView):
                             raise Error(ErrorMsg.BAD_REQUEST, 'will not exist admin')
                         else:
                             member_permission.update(read_only=read_only, admin=admin)
+
             except Exception as e:
                 raise Error(ErrorMsg.BAD_REQUEST, str(e))
+
         member_data = MemberPermission.objects.select_related('user').order_by('user').all()
         data = PermissionSerializer(member_data, many=True).data
         return response(data=data)
