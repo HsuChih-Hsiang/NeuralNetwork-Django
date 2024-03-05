@@ -215,10 +215,11 @@ class ModelDetailsLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
         search_txt = search.validated_data.get('search_txt')
 
-        if search_txt or not search_txt.is_space():
-            model_class = ModelDetails.objects.filer(
-                is_show=True, name__contains=search_txt, model_class=model_detail_id
-            )
+        if search_txt is not None:
+            if not search_txt.is_space():
+                model_class = ModelDetails.objects.filer(
+                    is_show=True, name__contains=search_txt, model_class=model_detail_id
+                )
         else:
             model_class = ModelDetails.objects.filer(is_show=True, model_class=model_detail_id)
 
