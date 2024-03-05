@@ -48,8 +48,16 @@ class TopicLayer(APIView):
 
 class UpdateTopicLayer(APIView):
     parser_classes = (JSONParser,)
-    authentication_classes = (Authentication,)
-    permission_classes = (AdminPermission,)
+
+    def get_authenticators(self):
+        if self.request.method == 'PUT':
+            return (Authentication(),)
+        return ()
+
+    def get_permissions(self):
+        if self.request.method == 'PUT':
+            return (AdminPermission(),)
+        return ()
 
     def put(self, request, topic_id):
         check = TopicCreateSerializer(data=request.data)
@@ -71,25 +79,15 @@ class UpdateTopicLayer(APIView):
 class SubtopicLayer(APIView):
     parser_classes = (JSONParser,)
 
-    def get(self, request, topic_id):
-        search = SearchTextSerializer(data=request.query_params)
-        if not search.is_valid():
-            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
-        search_txt = search.validated_data.get('search_txt', str())
+    def get_authenticators(self):
+        if self.request.method == 'POST':
+            return (Authentication(),)
+        return ()
 
-        if search_txt or not search_txt.isspace():
-            subtopic = Subtopic.objects.filter(is_show=True, name__contains=search_txt, topic=topic_id).order_by('id')
-        else:
-            subtopic = Subtopic.objects.filter(is_show=True, topic=topic_id).order_by('id')
-
-        data = SubtopicCreateSerializer(subtopic, many=True, context="subtopic").data
-        return response(data=data)
-
-
-class CreateSubtopicLayer(APIView):
-    parser_classes = (JSONParser,)
-    authentication_classes = (Authentication,)
-    permission_classes = (AdminPermission,)
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return (AdminPermission(),)
+        return ()
 
     def post(self, request, subtopic_id):
         check = SubtopicCreateSerializer(data=request.data)
@@ -99,19 +97,29 @@ class CreateSubtopicLayer(APIView):
         topic = Topic.objects.filter(id=subtopic_id).first()
         if not topic:
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
-        check.validated_data.update({'topic_id': topic.id})
-        check.save()
+        check.validated_data.update({'topic': topic.id})
 
+        check.save()
         topic = Subtopic.objects.filter(is_show=True).order_by('id')
         data = SubtopicCreateSerializer(topic, many=True, context="subtopic").data
         return response(data=data)
 
+    def get(self, request, subtopic_id):
+        search = SearchTextSerializer(data=request.query_params)
+        if not search.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+        search_txt = search.validated_data.get('search_txt', str())
+
+        if search_txt or not search_txt.isspace():
+            subtopic = Subtopic.objects.filter(is_show=True, name__contains=search_txt, topic=subtopic_id).order_by('id')
+        else:
+            subtopic = Subtopic.objects.filter(is_show=True, topic=subtopic_id).order_by('id')
+
+        data = SubtopicCreateSerializer(subtopic, many=True, context="subtopic").data
+        return response(data=data)
+
 
 class UpdateSubtopicLayer(APIView):
-    parser_classes = (JSONParser,)
-    authentication_classes = (Authentication,)
-    permission_classes = (AdminPermission,)
-
     def put(self, request, subtopic_id):
         check = SubtopicCreateSerializer(data=request.data)
         if not check.is_valid():
@@ -132,28 +140,15 @@ class UpdateSubtopicLayer(APIView):
 class ModelClassLayer(APIView):
     parser_classes = (JSONParser,)
 
-    def get(self, request, subtopic_id):
-        search = SearchTextSerializer(data=request.query_params)
-        if not search.is_valid():
-            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
-        search_txt = search.validated_data.get('search_txt', str())
+    def get_authenticators(self):
+        if self.request.method == 'POST':
+            return (Authentication(),)
+        return ()
 
-        if search_txt and not search_txt.isspace():
-            model_class = ModelClass.objects.filter(
-                is_show=True, name__contains=search_txt, sub_topic=subtopic_id
-            ).order_by('id')
-
-        else:
-            model_class = ModelClass.objects.filter(is_show=True, sub_topic=subtopic_id).order_by('id')
-
-        data = ModelClassCreateSerializer(model_class, many=True, context="class").data
-        return response(data=data)
-
-
-class CreateModelClassLayer(APIView):
-    parser_classes = (JSONParser,)
-    authentication_classes = (Authentication,)
-    permission_classes = (AdminPermission,)
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return (AdminPermission(),)
+        return ()
 
     def post(self, request, model_class_id):
         check = ModelClassCreateSerializer(data=request.data)
@@ -163,19 +158,32 @@ class CreateModelClassLayer(APIView):
         subtopic = Subtopic.objects.filter(id=model_class_id).first()
         if not subtopic:
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
-        check.validated_data.update({'sub_topic_id': subtopic.id})
-        check.save()
+        check.validated_data.update({'sub_topic': subtopic.id})
 
+        check.save()
         model_class = ModelClass.objects.filter(is_show=True).order_by('id')
+        data = ModelClassCreateSerializer(model_class, many=True, context="class").data
+        return response(data=data)
+
+    def get(self, request, model_class_id):
+        search = SearchTextSerializer(data=request.query_params)
+        if not search.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+        search_txt = search.validated_data.get('search_txt', str())
+
+        if search_txt and not search_txt.isspace():
+            model_class = ModelClass.objects.filter(
+                is_show=True, name__contains=search_txt, sub_topic=model_class_id
+            ).order_by('id')
+
+        else:
+            model_class = ModelClass.objects.filter(is_show=True, sub_topic=model_class_id).order_by('id')
+
         data = ModelClassCreateSerializer(model_class, many=True, context="class").data
         return response(data=data)
 
 
 class UpdateModelClassLayer(APIView):
-    parser_classes = (JSONParser,)
-    authentication_classes = (Authentication,)
-    permission_classes = (AdminPermission,)
-
     def put(self, request, model_class_id):
         check = ModelClassCreateSerializer(data=request.data)
         if not check.is_valid():
@@ -196,7 +204,32 @@ class UpdateModelClassLayer(APIView):
 class ModelDetailsLayer(APIView):
     parser_classes = (JSONParser,)
 
-    def get(self, request, model_class_id):
+    def get_authenticators(self):
+        if self.request.method == 'POST':
+            return (Authentication(),)
+        return ()
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return (AdminPermission(),)
+        return ()
+
+    def post(self, request, model_detail_id):
+        check = ModelDetailsCreateSerializer(data=request.data)
+        if not check.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        model_class = ModelClass.objects.filter(id=model_detail_id).first()
+        if not model_class:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+        check.validated_data.update({'model_class': model_class.id})
+
+        check.save()
+        model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
+        data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
+        return response(data=data)
+
+    def get(self, request, model_detail_id):
         search = SearchTextSerializer(data=request.query_params)
         if not search.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
@@ -204,33 +237,12 @@ class ModelDetailsLayer(APIView):
 
         if search_txt and not search_txt.isspace():
             model_class = ModelDetails.objects.filter(
-                is_show=True, name__contains=search_txt, model_class=model_class_id
+                is_show=True, name__contains=search_txt, model_class=model_detail_id
             ).order_by('id')
         else:
-            model_class = ModelDetails.objects.filter(is_show=True, model_class=model_class_id).order_by('id')
+            model_class = ModelDetails.objects.filter(is_show=True, model_class=model_detail_id).order_by('id')
 
         data = ModelClassCreateSerializer(model_class, many=True, context="detail").data
-        return response(data=data)
-
-
-class CreateModelDetailsLayer(APIView):
-    parser_classes = (JSONParser,)
-    authentication_classes = (Authentication,)
-    permission_classes = (AdminPermission,)
-
-    def post(self, request, model_detail_id):
-        check = ModelDetailsCreateSerializer(data=request.data)
-        if not check.is_valid():
-            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
-
-        subtopic = ModelClass.objects.filter(id=model_detail_id).first()
-        if not subtopic:
-            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
-        check.validated_data.update({'model_class_id': subtopic.id})
-        check.save()
-
-        model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
-        data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
 
 
@@ -250,3 +262,4 @@ class UpdateModelDetailsLayer(APIView):
         model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
         data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
+
