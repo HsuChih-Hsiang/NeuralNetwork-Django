@@ -262,3 +262,4 @@ class UpdateModelDetailsLayer(APIView):
         model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
         data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
+
