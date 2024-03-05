@@ -44,7 +44,7 @@ class TopicCreateSerializer(serializers.Serializer):
 
 
 class SearchTextSerializer(serializers.Serializer):
-    search_txt = serializers.CharField(required=False, write_only=True, allow_null=False, allow_blank=False)
+    search_txt = serializers.CharField(required=False, allow_null=False, allow_blank=False)
 
 
 class SubtopicCreateSerializer(TopicCreateSerializer):

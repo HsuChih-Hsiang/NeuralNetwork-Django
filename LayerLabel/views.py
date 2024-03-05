@@ -27,7 +27,7 @@ class TopicLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
         check.save()
-        topic = Topic.objects.filter(is_show=True)
+        topic = Topic.objects.filter(is_show=True).order_by('id')
         data = TopicCreateSerializer(topic, many=True, context='topic').data
         return response(data=data)
 
@@ -37,10 +37,10 @@ class TopicLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
         search_txt = search.validated_data.get('search_txt', str())
 
-        if search_txt and not search_txt.is_space():
-            topic = Topic.objects.filter(is_show=True, name__contains=search_txt)
+        if search_txt and not search_txt.isspace():
+            topic = Topic.objects.filter(is_show=True, name__contains=search_txt).order_by('id')
         else:
-            topic = Topic.objects.filter(is_show=True)
+            topic = Topic.objects.filter(is_show=True).order_by('id')
 
         data = TopicCreateSerializer(topic, many=True, context='topic').data
         return response(data=data)
@@ -64,14 +64,14 @@ class UpdateTopicLayer(APIView):
         if not check.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
-        topic = Topic.objects.filter(id=topic_id)
+        topic = Topic.objects.filter(id=topic_id).first()
         if not topic:
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- topic id')
 
         check.instance = topic
         check.save()
 
-        topic = Topic.objects.filter(is_show=True)
+        topic = Topic.objects.filter(is_show=True).order_by('id')
         data = TopicCreateSerializer(topic, many=True, context='topic').data
         return response(data=data)
 
@@ -95,7 +95,7 @@ class SubtopicLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
         check.save()
-        topic = Topic.objects.filter(is_show=True)
+        topic = Subtopic.objects.filter(is_show=True).order_by('id')
         data = SubtopicCreateSerializer(topic, many=True, context="subtopic").data
         return response(data=data)
 
@@ -105,10 +105,10 @@ class SubtopicLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
         search_txt = search.validated_data.get('search_txt', str())
 
-        if search_txt or not search_txt.is_space():
-            subtopic = Subtopic.objects.filter(is_show=True, name__contains=search_txt, topic=subtopic_id)
+        if search_txt or not search_txt.isspace():
+            subtopic = Subtopic.objects.filter(is_show=True, name__contains=search_txt, topic=subtopic_id).order_by('id')
         else:
-            subtopic = Subtopic.objects.filter(is_show=True, topic=subtopic_id)
+            subtopic = Subtopic.objects.filter(is_show=True, topic=subtopic_id).order_by('id')
 
         data = SubtopicCreateSerializer(subtopic, many=True, context="subtopic").data
         return response(data=data)
@@ -127,7 +127,7 @@ class UpdateSubtopicLayer(APIView):
         check.instance = subtopic
         check.save()
 
-        subtopic = Subtopic.objects.filter(is_show=True)
+        subtopic = Subtopic.objects.filter(is_show=True).order_by('id')
         data = SubtopicCreateSerializer(subtopic, many=True, context='topic').data
         return response(data=data)
 
@@ -151,7 +151,7 @@ class ModelClassLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
         check.save()
-        model_class = ModelClass.objects.filter(is_show=True)
+        model_class = ModelClass.objects.filter(is_show=True).order_by('id')
         data = ModelClassCreateSerializer(model_class, many=True, context="class").data
         return response(data=data)
 
@@ -161,10 +161,13 @@ class ModelClassLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
         search_txt = search.validated_data.get('search_txt', str())
 
-        if search_txt and not search_txt.is_space():
-            model_class = ModelClass.objects.filter(is_show=True, name__contains=search_txt, sub_topic=model_class_id)
+        if search_txt and not search_txt.isspace():
+            model_class = ModelClass.objects.filter(
+                is_show=True, name__contains=search_txt, sub_topic=model_class_id
+            ).order_by('id')
+
         else:
-            model_class = ModelClass.objects.filter(is_show=True, sub_topic=model_class_id)
+            model_class = ModelClass.objects.filter(is_show=True, sub_topic=model_class_id).order_by('id')
 
         data = ModelClassCreateSerializer(model_class, many=True, context="class").data
         return response(data=data)
@@ -183,7 +186,7 @@ class UpdateModelClassLayer(APIView):
         check.instance = model_class
         check.save()
 
-        model_class = ModelClass.objects.filter(is_show=True)
+        model_class = ModelClass.objects.filter(is_show=True).order_by('id')
         data = ModelClassCreateSerializer(model_class, many=True, context="class").data
         return response(data=data)
 
@@ -207,7 +210,7 @@ class ModelDetailsLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
         check.save()
-        model_class = ModelDetails.objects.filter(is_show=True)
+        model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
         data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
 
@@ -217,12 +220,12 @@ class ModelDetailsLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
         search_txt = search.validated_data.get('search_txt', str())
 
-        if search_txt and not search_txt.is_space():
+        if search_txt and not search_txt.isspace():
             model_class = ModelDetails.objects.filter(
                 is_show=True, name__contains=search_txt, model_class=model_detail_id
-            )
+            ).order_by('id')
         else:
-            model_class = ModelDetails.objects.filter(is_show=True, model_class=model_detail_id)
+            model_class = ModelDetails.objects.filter(is_show=True, model_class=model_detail_id).order_by('id')
 
         data = ModelClassCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
@@ -241,6 +244,6 @@ class UpdateModelDetailsLayer(APIView):
         check.instance = model_class
         check.save()
 
-        model_class = ModelDetails.objects.filter(is_show=True)
+        model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
         data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
