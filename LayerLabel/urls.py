@@ -1,8 +1,14 @@
 from django.urls import path
-import member.views as views
+import LayerLabel.views as views
 
 
 urlpatterns = [
-    path('topic', views.Login.as_view()),
-    path('topic/modify/<int:topic_id>', views.Login.as_view()),
+    path('topic', views.TopicLayer.as_view()),
+    path('topic/modify/<int:topic_id>', views.UpdateTopicLayer.as_view()),
+    path('subtopic', views.SubtopicLayer.as_view()),
+    path('subtopic/modify/<int:subtopic_id>', views.UpdateSubtopicLayer.as_view()),
+    path('model_class', views.ModelClassLayer.as_view()),
+    path('model_class/modify/<int:model_class_id>', views.UpdateModelClassLayer.as_view()),
+    path('model_detail', views.ModelDetailsLayer.as_view()),
+    path('model_detail/modify/<int:model_detail_id>', views.UpdateModelDetailsLayer.as_view()),
 ]
