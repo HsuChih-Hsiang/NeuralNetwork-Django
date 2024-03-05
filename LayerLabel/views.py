@@ -89,10 +89,15 @@ class SubtopicLayer(APIView):
             return (AdminPermission(),)
         return ()
 
-    def post(self, request):
+    def post(self, request, subtopic_id):
         check = SubtopicCreateSerializer(data=request.data)
         if not check.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        topic = Topic.objects.filter(id=subtopic_id).first()
+        if not topic:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+        check.validated_data.update({'topic': topic.id})
 
         check.save()
         topic = Subtopic.objects.filter(is_show=True).order_by('id')
@@ -145,10 +150,15 @@ class ModelClassLayer(APIView):
             return (AdminPermission(),)
         return ()
 
-    def post(self, request):
+    def post(self, request, model_class_id):
         check = ModelClassCreateSerializer(data=request.data)
         if not check.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        subtopic = Subtopic.objects.filter(id=model_class_id).first()
+        if not subtopic:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+        check.validated_data.update({'sub_topic': subtopic.id})
 
         check.save()
         model_class = ModelClass.objects.filter(is_show=True).order_by('id')
@@ -204,10 +214,15 @@ class ModelDetailsLayer(APIView):
             return (AdminPermission(),)
         return ()
 
-    def post(self, request):
+    def post(self, request, model_detail_id):
         check = ModelDetailsCreateSerializer(data=request.data)
         if not check.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        model_class = ModelClass.objects.filter(id=model_detail_id).first()
+        if not model_class:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+        check.validated_data.update({'model_class': model_class.id})
 
         check.save()
         model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
