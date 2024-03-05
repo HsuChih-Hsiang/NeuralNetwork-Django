@@ -27,8 +27,8 @@ class TopicLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
         check.save()
-        topic = Topic.objects.filer(is_show=True)
-        data = TopicCreateSerializer(topic, many=True).data
+        topic = Topic.objects.filter(is_show=True)
+        data = TopicCreateSerializer(topic, many=True, context='topic').data
         return response(data=data)
 
     def get(self, request):
@@ -42,7 +42,7 @@ class TopicLayer(APIView):
         else:
             topic = Topic.objects.filter(is_show=True)
 
-        data = TopicCreateSerializer(topic, many=True).data
+        data = TopicCreateSerializer(topic, many=True, context='topic').data
         return response(data=data)
 
 
@@ -72,7 +72,7 @@ class UpdateTopicLayer(APIView):
         check.save()
 
         topic = Topic.objects.filter(is_show=True)
-        data = TopicCreateSerializer(topic, many=True).data
+        data = TopicCreateSerializer(topic, many=True, context='topic').data
         return response(data=data)
 
 
@@ -96,7 +96,7 @@ class SubtopicLayer(APIView):
 
         check.save()
         topic = Topic.objects.filter(is_show=True)
-        data = SubtopicCreateSerializer(topic, many=True).data
+        data = SubtopicCreateSerializer(topic, many=True, context="subtopic").data
         return response(data=data)
 
     def get(self, request, subtopic_id):
@@ -127,7 +127,9 @@ class UpdateSubtopicLayer(APIView):
         check.instance = subtopic
         check.save()
 
-        return response()
+        subtopic = Subtopic.objects.filter(is_show=True)
+        data = SubtopicCreateSerializer(subtopic, many=True, context='topic').data
+        return response(data=data)
 
 
 class ModelClassLayer(APIView):
@@ -149,8 +151,8 @@ class ModelClassLayer(APIView):
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
         check.save()
-        model_class = ModelClass.objects.filer(is_show=True)
-        data = ModelClassCreateSerializer(model_class, many=True).data
+        model_class = ModelClass.objects.filter(is_show=True)
+        data = ModelClassCreateSerializer(model_class, many=True, context="class").data
         return response(data=data)
 
     def get(self, request, model_class_id):
@@ -182,7 +184,7 @@ class UpdateModelClassLayer(APIView):
         check.save()
 
         model_class = ModelClass.objects.filter(is_show=True)
-        data = ModelClassCreateSerializer(model_class, many=True).data
+        data = ModelClassCreateSerializer(model_class, many=True, context="class").data
         return response(data=data)
 
 
@@ -206,7 +208,7 @@ class ModelDetailsLayer(APIView):
 
         check.save()
         model_class = ModelDetails.objects.filter(is_show=True)
-        data = ModelDetailsCreateSerializer(model_class, many=True).data
+        data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
 
     def get(self, request, model_detail_id):
@@ -222,7 +224,7 @@ class ModelDetailsLayer(APIView):
         else:
             model_class = ModelDetails.objects.filter(is_show=True, model_class=model_detail_id)
 
-        data = ModelClassCreateSerializer(model_class, many=True, context="class").data
+        data = ModelClassCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
 
 
@@ -240,5 +242,5 @@ class UpdateModelDetailsLayer(APIView):
         check.save()
 
         model_class = ModelDetails.objects.filter(is_show=True)
-        data = ModelDetailsCreateSerializer(model_class, many=True).data
+        data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
