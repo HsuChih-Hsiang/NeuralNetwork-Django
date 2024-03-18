@@ -66,3 +66,10 @@ class ModelDetailsCreateSerializer(TopicCreateSerializer):
     def create(self, validated_data):
         model_detail = ModelDetails.objects.create(**validated_data)
         return model_detail
+
+
+class DetailSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    is_show = serializers.BooleanField()
+    description = serializers.CharField()
