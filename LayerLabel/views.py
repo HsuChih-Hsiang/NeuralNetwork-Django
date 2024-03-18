@@ -1,10 +1,10 @@
 from utility.customized_response import response
 from utility.error_msg import ErrorMsg, Error
-from utility.customized_auth import AdminPermission, Authentication
+from utility.customized_auth import AdminPermission, ReadOnlyPermission, Authentication
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from .serializers import (SearchTextSerializer, TopicCreateSerializer, SubtopicCreateSerializer,
-                          ModelClassCreateSerializer, ModelDetailsCreateSerializer)
+                          ModelClassCreateSerializer, ModelDetailsCreateSerializer, DetailSerializer)
 from .models import Topic, Subtopic, ModelClass, ModelDetails
 
 
@@ -58,6 +58,22 @@ class UpdateTopicLayer(APIView):
         if self.request.method == 'PUT':
             return (AdminPermission(),)
         return ()
+
+    def put(self, request, topic_id):
+        check = TopicCreateSerializer(data=request.data)
+        if not check.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        topic = Topic.objects.filter(id=topic_id).first()
+        if not topic:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- topic id')
+
+        check.instance = topic
+        check.save()
+
+        topic = Topic.objects.filter(is_show=True).order_by('id')
+        data = TopicCreateSerializer(topic, many=True, context='topic').data
+        return response(data=data)
 
     def put(self, request, topic_id):
         check = TopicCreateSerializer(data=request.data)
@@ -246,14 +262,69 @@ class ModelDetailsLayer(APIView):
         if not check.is_valid():
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
 
-        model_class = ModelDetails.objects.filter(id=model_detail_id).first()
-        if not model_class:
+        model_detail = ModelDetails.objects.filter(id=model_detail_id).first()
+        if not model_detail:
             raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- model detail id')
 
-        check.instance = model_class
+        check.instance = model_detail
         check.save()
 
         model_class = ModelDetails.objects.filter(is_show=True).order_by('id')
         data = ModelDetailsCreateSerializer(model_class, many=True, context="detail").data
         return response(data=data)
 
+
+class TopicDetail(APIView):
+    parser_classes = (JSONParser,)
+    authentication_classes = (Authentication,)
+    permission_classes = (ReadOnlyPermission,)
+
+    def get(self, request, topic_id):
+        topic = Topic.objects.filter(id=topic_id).first()
+        if not topic:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- topic id')
+
+        data = DetailSerializer(topic).data
+        return response(data=data)
+
+
+class SubtopicDetail(APIView):
+    parser_classes = (JSONParser,)
+    authentication_classes = (Authentication,)
+    permission_classes = (ReadOnlyPermission,)
+
+    def get(self, request, subtopic_id):
+        subtopic = Subtopic.objects.filter(id=subtopic_id).first()
+        if not subtopic:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- subtopic id')
+
+        data = DetailSerializer(subtopic).data
+        return response(data=data)
+
+
+class ModelClassDetail(APIView):
+    parser_classes = (JSONParser,)
+    authentication_classes = (Authentication,)
+    permission_classes = (ReadOnlyPermission,)
+
+    def get(self, request, model_class_id):
+        model_class = ModelClass.objects.filter(id=model_class_id).first()
+        if not model_class:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- class id')
+
+        data = DetailSerializer(model_class).data
+        return response(data=data)
+
+
+class ModelDetailDescription(APIView):
+    parser_classes = (JSONParser,)
+    authentication_classes = (Authentication,)
+    permission_classes = (ReadOnlyPermission,)
+
+    def get(self, request, model_detail_id):
+        model_detail = ModelDetails.objects.filter(id=model_detail_id).first()
+        if not model_detail:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- model detail id')
+
+        data = DetailSerializer(model_detail).data
+        return response(data=data)
