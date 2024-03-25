@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Topic, Subtopic, ModelClass, ModelDetails
+from .models import Topic, Subtopic, ModelClass, ModelDetails, ModelMappingUrls
 from utility.error_msg import ErrorMsg, Error
 
 
@@ -73,3 +73,21 @@ class DetailSerializer(serializers.Serializer):
     name = serializers.CharField()
     is_show = serializers.BooleanField()
     description = serializers.CharField()
+
+
+class UpdateMappingSerializer(serializers.Serializer):
+    layer = serializers.ChoiceField(choices=[1, 2, 3, 4])
+    layer_id = serializers.IntegerField()
+    api_name = serializers.CharField()
+
+    def create(self, validated_data):
+        model_detail = ModelMappingUrls.objects.create(**validated_data)
+        return model_detail
+
+
+class GetMappingSerializer(serializers.Serializer):
+    layer = serializers.ChoiceField(choices=[1, 2, 3, 4])
+    layer_id = serializers.IntegerField()
+
+
+

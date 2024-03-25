@@ -42,3 +42,13 @@ class ModelDetails(models.Model):
 
     class Meta:
         db_table = 'Model_Details'
+
+
+class ModelMappingUrls(models.Model):
+    objects = models.Manager()
+    layer = models.IntegerField()
+    layer_id = models.IntegerField()
+    api_name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = 'Model_Mapping_Urls'
