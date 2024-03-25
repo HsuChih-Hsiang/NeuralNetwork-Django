@@ -12,4 +12,5 @@ urlpatterns = [
     path('model_class/detail/<int:model_class_id>', views.ModelClassDetail.as_view()),
     path('model_detail/<int:model_detail_id>', views.ModelDetailsLayer.as_view()),
     path('model_detail/detail/<int:model_detail_id>', views.ModelDetailDescription.as_view()),
+    path('model_mapping', views.ModelMapping.as_view()),
 ]

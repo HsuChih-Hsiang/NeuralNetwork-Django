@@ -4,8 +4,9 @@ from utility.customized_auth import AdminPermission, ReadOnlyPermission, Authent
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from .serializers import (SearchTextSerializer, TopicCreateSerializer, SubtopicCreateSerializer,
-                          ModelClassCreateSerializer, ModelDetailsCreateSerializer, DetailSerializer)
-from .models import Topic, Subtopic, ModelClass, ModelDetails
+                          ModelClassCreateSerializer, ModelDetailsCreateSerializer, DetailSerializer,
+                          UpdateMappingSerializer, GetMappingSerializer)
+from .models import Topic, Subtopic, ModelClass, ModelDetails, ModelMappingUrls
 
 
 class TopicLayer(APIView):
@@ -328,3 +329,68 @@ class ModelDetailDescription(APIView):
 
         data = DetailSerializer(model_detail).data
         return response(data=data)
+
+
+class ModelMapping(APIView):
+    parser_classes = (JSONParser,)
+    authentication_classes = (Authentication,)
+    permission_classes = (ReadOnlyPermission,)
+
+    def get(self, request):
+        model_mapping_data = GetMappingSerializer(data=request.data)
+        if not model_mapping_data.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        layer = model_mapping_data.validated_data.get('layer')
+        layer_id = model_mapping_data.validated_data.get('layer_id')
+
+        if layer == 1:
+            id_checker = Topic.objects.filter(id=layer_id)
+        elif layer == 2:
+            id_checker = Subtopic.objects.filter(id=layer_id)
+        elif layer == 3:
+            id_checker = ModelClass.objects.filter(id=layer_id)
+        else:
+            id_checker = ModelDetails.objects.filter(id=layer_id)
+
+        if not id_checker:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- layer id is not exist')
+
+        mapping_detail = ModelMappingUrls.objects.filter(layer=layer, layer_id=layer_id)
+        data = UpdateMappingSerializer(mapping_detail, many=True).data
+        return response(data=data)
+
+    def put(self, request):
+        model_mapping_data = UpdateMappingSerializer(data=request.data)
+        if not model_mapping_data.is_valid():
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters')
+
+        api_name = model_mapping_data.validated_data.get('api_name')
+        layer = model_mapping_data.validated_data.get('layer')
+        layer_id = model_mapping_data.validated_data.get('layer_id')
+
+        if layer == 1:
+            id_checker = Topic.objects.filter(id=layer_id)
+        elif layer == 2:
+            id_checker = Subtopic.objects.filter(id=layer_id)
+        elif layer == 3:
+            id_checker = ModelClass.objects.filter(id=layer_id)
+        else:
+            id_checker = ModelDetails.objects.filter(id=layer_id)
+
+        if not id_checker:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- layer id is not exist')
+
+        mapping = ModelMappingUrls.objects.filter(api_name=api_name)
+        mapping_detail = mapping.filter(layer=layer, layer_id=layer_id)
+
+        if mapping_detail:
+            mapping.delete()
+            return response()
+
+        elif not mapping_detail and mapping:
+            raise Error(ErrorMsg.BAD_REQUEST, 'Bad Parameters -- model is used')
+
+        else:
+            model_mapping_data.save()
+            return response()
